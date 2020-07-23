@@ -17,6 +17,8 @@ class ATL03:
 			if "heights" in list(self.h5.get(beam).keys()):
 				h = np.asarray(self.h5.get(beam).get("heights").get("h_ph"))
 				d = np.asarray(self.h5.get(beam).get("heights").get("dist_ph_along"))
+				lat = np.asarray(self.h5.get(beam).get("heights").get("lat_ph"))
+				lon = np.asarray(self.h5.get(beam).get("heights").get("lon_ph"))
 
-			setattr(self, beam, beamObject(h,d))
 
+			setattr(self, beam, beamObject(h,d,lat,lon))
