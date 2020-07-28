@@ -10,18 +10,18 @@ from the ATLAS space-borne LiDAR sensor onboard NASA's ICESat-2 satellite.
 
 ## Installation
 
-Due to the developmental nature of this package, it is not available via
+Due to the developmental nature of this package, it is not yet available via
 `$conda install` or `$pip install`
 
-Instead, please fork and clone this repository. From within the clone directory...
+Instead, please fork and clone this repository. From within the cloned directory...
 
-### **conda users:***
+### **conda users:**
 
 1. Create a new virtual environment with `$conda env create -f environment.yaml`
 
 2. Add PyCESat2 to virtual environment with `$conda develop .`
 
-### **pip users:***
+### **pip users:**
 
 1. Create a new virtual environment with venv - [https://docs.python.org/3/tutorial/venv.html]
 
@@ -32,11 +32,11 @@ Instead, please fork and clone this repository. From within the clone directory.
 ## Data Access
 
 The preferred method for accessing ICESat-2 ATLAS ATL03 data is via
-[https://openaltimetry.org/data/icesat2/].
+https://openaltimetry.org/data/icesat2/.
 
 Alternatively, data can be accessed via the National Snow and Ice Data Center
 (NSIDC) website:
-[https://nsidc.org/data/ATL03].
+https://nsidc.org/data/ATL03.
 
 *Important Note:* PyCESAT2 is designed specifically for ATL03 data and does not
 support the hierarchical structure of other ATLAS data products. Future releases
@@ -54,7 +54,5 @@ have permission to contribute.
 * For any contributions, please follow these protocol:
 	1. Create a new issue (with label) detailing your planned addition
 	2. Create a new branch of form #-Name-Of-Issue.
-		- # should be the next number after the highest numbered branch (active or inactive)
+		- Number should be the next number after the highest numbered branch (active or inactive)
 	3. Issue pull request with changes to new branch and assign Forrest Corcoran as reviewer
-
-	
