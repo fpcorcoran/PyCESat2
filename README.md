@@ -11,23 +11,23 @@ from the ATLAS space-borne LiDAR sensor onboard NASA's ICESat-2 satellite.
 ## Installation
 
 Due to the developmental nature of this package, it is not yet available via
-`$conda install` or `$pip install`
+`conda install` or `pip install`
 
 Instead, please fork and clone this repository. From within the cloned directory...
 
 ### **conda users:**
 
-1. Create a new virtual environment with `$conda env create -f environment.yaml`
+1. Create a new virtual environment with `conda env create -f environment.yaml`
 
-2. Add PyCESat2 to virtual environment with `$conda develop .`
+2. Add PyCESat2 to virtual environment with `conda develop .`
 
 ### **pip users:**
 
-1. Create a new virtual environment with venv - [https://docs.python.org/3/tutorial/venv.html]
+1. Create a new virtual environment with *venv* - https://docs.python.org/3/tutorial/venv.html
 
-2. Install package requirements in new environment with `$pip install -r requirements.txt`
+2. Install package requirements in new environment with `pip install -r requirements.txt`
 
-3. Add PyCESat2 to virtual environment with `$pip install .`
+3. Add PyCESat2 to virtual environment with `pip install .`
 
 ## Data Access
 
