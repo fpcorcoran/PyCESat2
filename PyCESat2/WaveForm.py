@@ -45,6 +45,7 @@ class waveForm:
 		self.curve = True
 		setattr(self, "height_fit", height_fit)
 		setattr(self, "count_fit", count_fit)
+		setattr(self, "covar", pcov)
 		setattr(self, "curve_params", {"a":popt[0],
 										"c":popt[1],
 										"d":popt[2]})
