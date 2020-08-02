@@ -1,54 +1,49 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import exp_curve, optimize_params
 from scipy.optimize import curve_fit
+import warnings
 
 class waveForm:
 	def __init__(self, h, n):
 		self.height = h
 		self.count = n
 		self.curve = False
-		self.height_fit = []
-		self.count_fit = []
 
-	def fit_curve(self, p0):
+
+	def fit_curve(self):
 		"""
 		Fit a continuous curve to the discrete, binned LiDAR waveform.
 
+		Initial parameters for the curve fitting are selected using the
+		differenction evolution genetic algorithm.
+
 		NOTE: This method is in development - your mileage may vary.
 		Currently only supports exponential decay curves.
-
-		Parameters:
-		----------
-		p0 (tuple) - initial optimizition parameters for curve of the form
-		(A, C, D), where wave = A * e^(-C * elevation) + D.
 
 		Returns:
 		-------
 		self (WaveForm)
 		"""
 
-		def exp_decay(x, a, c, d):
-			return a*np.exp(-c*x)+d
+		def SumSquaredError(params):
+			warnings.filterwarnings("ignore")
+			return np.sum((self.count - exp_curve(self.height, *params)) ** 2.0)
 
-		popt, pcov = curve_fit(exp_decay,
-								self.count,
-								self.height,
-								p0,
-								maxfev=1000000)
+		optimal_params = optimize_params(SumSquaredError)
 
 		height_fit = np.linspace(np.max(self.height),
 									np.min(self.height),
 									len(self.height))
 
-		count_fit = exp_decay(height_fit, *popt)
+		count_fit = exp_curve(height_fit, *optimal_params)
 
 		self.curve = True
+
 		setattr(self, "height_fit", height_fit)
 		setattr(self, "count_fit", count_fit)
-		setattr(self, "covar", pcov)
-		setattr(self, "curve_params", {"a":popt[0],
-										"c":popt[1],
-										"d":popt[2]})
+		setattr(self, "curve_params", {"a":optimal_params[0],
+										"c":optimal_params[1]})
 
 		return self
 
@@ -57,7 +52,8 @@ class waveForm:
 		plt.barh(self.height, self.count)
 
 		if self.curve:
-			plt.plot(self.count_fit, self.height_fit, c="r")
+			plt.plot(self.count_fit, self.height, c="r")
+			#plt.plot(self.height_fit, self.count_fit, c="r")
 
 			plt.show()
 
@@ -74,7 +70,7 @@ def main():
 	p0=(a, c, d)
 
 	h = np.linspace(2500,3000,200)
-	n = a*np.exp(-c*h) + d
+	n = a*np.exp(c*h) + d
 
 	wf = waveForm(h, n).fit_curve(p0).plot()
 	wf2 = waveForm(h, n).plot()
