@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import exp_curve, optimize_params
+from utils import exp_curve, error_metric, optimize_params
+from sklearn.metrics import r2_score
 from scipy.optimize import curve_fit
-import warnings
 
 class waveForm:
 	def __init__(self, h, n):
@@ -11,7 +11,7 @@ class waveForm:
 		self.curve = False
 
 
-	def fit_curve(self):
+	def fit_curve(self, metric="RMSE"):
 		"""
 		Fit a continuous curve to the discrete, binned LiDAR waveform.
 
@@ -26,11 +26,9 @@ class waveForm:
 		self (WaveForm)
 		"""
 
-		def SumSquaredError(params):
-			warnings.filterwarnings("ignore")
-			return np.sum((self.count - exp_curve(self.height, *params)) ** 2.0)
+		metric = error_metric(self.height, self.count, metric=metric)
 
-		optimal_params = optimize_params(SumSquaredError)
+		optimal_params = optimize_params(metric)
 
 		height_fit = np.linspace(np.max(self.height),
 									np.min(self.height),
@@ -44,6 +42,9 @@ class waveForm:
 		setattr(self, "count_fit", count_fit)
 		setattr(self, "curve_params", {"a":optimal_params[0],
 										"c":optimal_params[1]})
+
+		setattr(self, "metric", metric(optimal_params))
+		setattr(self, "r2", r2_score(self.count, self.count_fit))
 
 		return self
 
