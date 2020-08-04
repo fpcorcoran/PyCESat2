@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import exp_curve, error_metric, optimize_params
+from .utils import *
 from sklearn.metrics import r2_score
 from scipy.optimize import curve_fit
 

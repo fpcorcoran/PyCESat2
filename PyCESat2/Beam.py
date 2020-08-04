@@ -7,6 +7,7 @@ from scipy.interpolate import CubicSpline
 from sklearn.linear_model import RANSACRegressor
 import matplotlib.pyplot as plt
 from .WaveForm import waveForm
+from .utils import *
 
 class beamObject:
 	def __init__(self, h, d, lat, lon):
@@ -159,11 +160,27 @@ class beamObject:
 		 										   self.height.reshape(n,1)))
 
 		photons = list(zip(self.height, self.distance))
-		above = np.asarray([photon for photon in photons if photon[0] > ransac.predict(photon[1].reshape(1, -1))])
-		below = np.asarray([photon for photon in photons if photon[0] < ransac.predict(photon[1].reshape(1, -1))])
+		above = np.asarray([photon for photon in photons if photon[0] > ransac.predict(photon[1].reshape(1,-1))])
+		below = np.asarray([photon for photon in photons if photon[0] < ransac.predict(photon[1].reshape(1,-1))])
 
-		setattr(self, "ransac_above", above)
-		setattr(self, "ransac_below", below)
+		below_beam = beamObject(below[:,0],below[:,1],[np.nan],[np.nan])
+		above_beam = beamObject(above[:,0],above[:,1],[np.nan],[np.nan])
+
+		below_beam.RANSACed = True
+		above_beam.RANSACed = True
+
+		setattr(below_beam, "ransac_distance", ransac_distance)
+		setattr(below_beam, "ransac_height", ransac.predict(ransac_distance))
+		setattr(below_beam, "ransac_score", ransac.score(self.distance.reshape(n,1),
+		 										   self.height.reshape(n,1)))
+
+		setattr(above_beam, "ransac_distance", ransac_distance)
+		setattr(above_beam, "ransac_height", ransac.predict(ransac_distance))
+		setattr(above_beam, "ransac_score", ransac.score(self.distance.reshape(n,1),
+		 										   self.height.reshape(n,1)))
+
+		setattr(self, "above", above_beam)
+		setattr(self, "below", below_beam)
 
 		return self
 
