@@ -144,7 +144,7 @@ class beamObject:
 
 	def RANSAC(self):
 		n = len(self.distance)
-		
+
 		ransac = RANSACRegressor(random_state=3).fit(
 											self.distance.reshape(n,1),
 											self.height.reshape(n,1))
@@ -157,6 +157,13 @@ class beamObject:
 		setattr(self, "ransac_height", ransac.predict(ransac_distance))
 		setattr(self, "ransac_score", ransac.score(self.distance.reshape(n,1),
 		 										   self.height.reshape(n,1)))
+
+		photons = list(zip(self.height, self.distance))
+		above = np.asarray([photon for photon in photons if photon[0] > ransac.predict(photon[1].reshape(1, -1))])
+		below = np.asarray([photon for photon in photons if photon[0] < ransac.predict(photon[1].reshape(1, -1))])
+
+		setattr(self, "ransac_above", above)
+		setattr(self, "ransac_below", below)
 
 		return self
 
