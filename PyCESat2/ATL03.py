@@ -1,10 +1,11 @@
 import h5py
 import numpy as np
+import warnings
 from .Beam import beamObject
 
 
 class ATL03:
-	def __init__(self, filename):
+	def __init__(self, filename, ignore_warnings=False):
 		self.filename = filename
 		self.h5 = h5py.File(filename, mode="r")
 
@@ -21,4 +22,11 @@ class ATL03:
 				lon = np.asarray(self.h5.get(beam).get("heights").get("lon_ph"))
 
 
-			setattr(self, beam, beamObject(h,d,lat,lon))
+				setattr(self, beam, beamObject(h,d,lat,lon))
+
+			else:
+				if ignore_warnings:
+					setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
+				else:
+					warnings.warn("Beam {} has no photon data".format(beam))
+					setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
