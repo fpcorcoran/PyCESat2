@@ -4,6 +4,7 @@ import os
 from rasterstats import point_query
 from shapely.geometry import Point
 from scipy.interpolate import CubicSpline
+from sklearn.linear_model import RANSACRegressor
 import matplotlib.pyplot as plt
 from .WaveForm import waveForm
 
@@ -13,6 +14,7 @@ class beamObject:
 		self.distance = d
 		self.lat = lat
 		self.lon = lon
+		self.RANSACed = False
 
 	def filter(self, win_x=3.0, win_h=3.0, threshold=15):
 		"""
@@ -140,6 +142,25 @@ class beamObject:
 			return beamObject(self.height + np.asarray(point_query(pts,geoid)),
 							  self.distance, self.lat, self.lon)
 
+	def RANSAC(self):
+		n = len(self.distance)
+		
+		ransac = RANSACRegressor(random_state=3).fit(
+											self.distance.reshape(n,1),
+											self.height.reshape(n,1))
+
+		ransac_distance = np.linspace(np.min(self.distance),
+									  np.max(self.distance), 1000).reshape(1000,1)
+
+		self.RANSACed = True
+		setattr(self, "ransac_distance", ransac_distance)
+		setattr(self, "ransac_height", ransac.predict(ransac_distance))
+		setattr(self, "ransac_score", ransac.score(self.distance.reshape(n,1),
+		 										   self.height.reshape(n,1)))
+
+		return self
+
+
 	def bin(self, win_x=3.0, win_h=3.0):
 		#get along track range
 		track_min = np.min(self.distance)
@@ -199,8 +220,16 @@ class beamObject:
 		return waveforms
 
 	def plot(self):
-		plt.figure(figsize=(6,6))
-		plt.scatter(self.distance, self.height, marker="X",s=0.1)
-		plt.ylabel("Elevation (m)")
-		plt.xlabel("Along Track Distance")
-		plt.show()
+		if self.RANSACed:
+			plt.figure(figsize=(6,6))
+			plt.scatter(self.distance, self.height, marker="X",s=0.1)
+			plt.plot(self.ransac_distance, self.ransac_height, c="r")
+			plt.ylabel("Elevation (m)")
+			plt.xlabel("Along Track Distance")
+			plt.show()
+		else:
+			plt.figure(figsize=(6,6))
+			plt.scatter(self.distance, self.height, marker="X",s=0.1)
+			plt.ylabel("Elevation (m)")
+			plt.xlabel("Along Track Distance")
+			plt.show()
