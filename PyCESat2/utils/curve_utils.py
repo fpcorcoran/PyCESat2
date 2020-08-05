@@ -27,7 +27,7 @@ def error_metric(height, count, metric):
 	elif metric == "RMSE":
 		def RootMeanSquaredError(params):
 			warnings.filterwarnings("ignore")
-			return np.sqrt(np.mean(count - exp_curve(height, *params)) ** 2.0)
+			return np.sqrt(np.mean((count - exp_curve(height, *params)) ** 2.0))
 
 		return RootMeanSquaredError
 
