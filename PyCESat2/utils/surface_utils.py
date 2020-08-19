@@ -1,0 +1,1 @@
+import randomdef random_hex():    hex_chars = "0123456789abcdef"        return "#"+"".join([random.choice(hex_chars) for i in range(6)])        
