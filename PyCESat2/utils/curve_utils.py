@@ -42,7 +42,7 @@ def error_metric(height, count, metric):
 
 
 
-def optimize_params(metric, a_bounds=[-2000, 2000], c_bounds=[-10,10]):
+def optimize_params(metric, a_bounds=[-2000, 2000], c_bounds=[-10,0]):
 	#return differential_evolution(metric, [a_bounds, c_bounds], seed=3).x
 	opt_params = differential_evolution(metric, [a_bounds, c_bounds], seed=3)
 

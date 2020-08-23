@@ -53,7 +53,7 @@ class beamObject:
                 x_stop = track_max
 
             #proceed through depth for each X window
-            while y_start >= h_min:
+            while y_start > h_min:
                 #define bottom of depth window
                 y_stop = y_start - win_h
 
@@ -312,7 +312,7 @@ class surfaceBeamObject(beamObject, surfaces):
 
         return surfaceBeamObject(above_beam, surface, model=model)
   
-    def plot(self, surfaces=None):
+    def plot(self, surfaces=None, fname=None):
         plt.figure(figsize=(6,6))
         plt.scatter(self.distance, self.height, marker="X",s=0.1, label="photon")
         
@@ -330,6 +330,10 @@ class surfaceBeamObject(beamObject, surfaces):
         plt.ylabel("Elevation (m)")
         plt.xlabel("Along Track Distance")
         plt.legend()
-        plt.show()
+        
+        if fname == None:
+            plt.show()
+        else:
+            plt.savefig(fname)
         
         return self
