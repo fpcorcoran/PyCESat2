@@ -47,6 +47,21 @@ class waveForm:
         setattr(self, "r2", r2_score(self.count, self.count_fit))
 
         return self
+    
+    def stats(self):
+        stats = {'mean':[mean(self)],
+                 'mode':[mode(self)],
+                 'median':[median(self)],
+                 'stdev':[stdev(self)],
+                 'variance':[variance(self)],
+                 'skewness':[skewness(self)],
+                 'kurtosis':[kurtosis(self)],
+                 'pearson1':[pearson_skewness(self, 1)],
+                 'pearson2':[pearson_skewness(self, 2)],
+                 'AUC':[AUC(self)]}
+        
+        return stats
+    
 
     def plot(self, fname=None):
         plt.figure(figsize=(6,6))
