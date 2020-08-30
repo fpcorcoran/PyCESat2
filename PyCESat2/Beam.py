@@ -311,6 +311,78 @@ class surfaceBeamObject(beamObject, surfaces):
         above_beam = beamObject(above[:,0],above[:,1],[np.nan],[np.nan])
 
         return surfaceBeamObject(above_beam, surface, model=model)
+    
+    def between(self, surface1, surface2):
+        model1 = getattr(self,surface1)['model']
+        model2 = getattr(self,surface2)['model']
+        
+        model1, model2 = order_surfaces(self.distance, model1, model2)
+        
+        photons = list(zip(self.height, self.distance))
+        
+        if hasattr(model1, 'predict') and hasattr(model2, 'predict'):
+            between = [photon for photon in photons if (photon[0] < model1.predict(photon[1].reshape(1,-1))) 
+                                                        and
+                                                       (photon[0] > model2.predict(photon[1].reshape(1,-1)))]
+        
+        elif hasattr(model1, 'predict') and (hasattr(model2, 'predict') == False):
+            between = [photon for photon in photons if (photon[0] < model1.predict(photon[1].reshape(1,-1))) 
+                                                        and
+                                                       (photon[0] > model2(photon[1]))]
+        
+        elif (hasattr(model1, 'predict') == False) and hasattr(model2, 'predict'):
+            between = [photon for photon in photons if (photon[0] < model1(photon[1])) 
+                                                        and
+                                                       (photon[0] > model2.predict(photon[1].reshape(1,-1)))]
+        
+        else:
+            between = [photon for photon in photons if (photon[0] < model1(photon[1])) 
+                                                        and
+                                                       (photon[0] > model2(photon[1]))]
+        
+        between = np.asarray(between)
+        between_beam = beamObject(between[:,0], between[:,1],[np.nan],[np.nan])
+        
+        between_beam = surfaceBeamObject(between_beam, surface1, model1)
+        between_beam.add_modeled_surface(surface2, model2, self.distance)
+        
+        return between_beam
+    
+    def outside(self, surface1, surface2):
+        model1 = getattr(self,surface1)['model']
+        model2 = getattr(self,surface2)['model']
+        
+        model1, model2 = order_surfaces(self.distance, model1, model2)
+        
+        photons = list(zip(self.height, self.distance))
+        
+        if hasattr(model1, 'predict') and hasattr(model2, 'predict'):
+            outside = [photon for photon in photons if (photon[0] > model1.predict(photon[1].reshape(1,-1))) 
+                                                        and
+                                                       (photon[0] < model2.predict(photon[1].reshape(1,-1)))]
+        
+        elif hasattr(model1, 'predict') and (hasattr(model2, 'predict') == False):
+            outside = [photon for photon in photons if (photon[0] >model1.predict(photon[1].reshape(1,-1))) 
+                                                        and
+                                                       (photon[0] < model2(photon[1]))]
+        
+        elif (hasattr(model1, 'predict') == False) and hasattr(model2, 'predict'):
+            outside = [photon for photon in photons if (photon[0] > model1(photon[1])) 
+                                                        and
+                                                       (photon[0] < model2.predict(photon[1].reshape(1,-1)))]
+        
+        else:
+            outside = [photon for photon in photons if (photon[0] > model1(photon[1])) 
+                                                        and
+                                                       (photon[0] < model2(photon[1]))]
+        
+        outside = np.asarray(outside)
+        outside_beam = beamObject(outside[:,0], outside[:,1],[np.nan],[np.nan])
+        
+        outside_beam = surfaceBeamObject(outside_beam, surface1, model1)
+        outside_beam.add_modeled_surface(surface2, model2, self.distance)
+        
+        return outside_beam
   
     def plot(self, surfaces=None, fname=None):
         plt.figure(figsize=(6,6))
