@@ -65,7 +65,6 @@ class beamObject:
                 #count number of photons in window
                 n_photons = len(photons["height"].values)
 
-
                 #check if n_photons meets density threshold criteria
                 if n_photons > threshold:
                     #convert to 2D array by stacking depthwise
@@ -77,8 +76,6 @@ class beamObject:
                     #add photon x/y to the list of filtered photons
                     for ph in win_photons:
                         filteredPhotons.append(ph)
-
-
 
                 #update top of depth window to bottom of last window
                 y_start = y_stop
@@ -358,22 +355,22 @@ class surfaceBeamObject(beamObject, surfaces):
         
         if hasattr(model1, 'predict') and hasattr(model2, 'predict'):
             outside = [photon for photon in photons if (photon[0] > model1.predict(photon[1].reshape(1,-1))) 
-                                                        and
+                                                        or
                                                        (photon[0] < model2.predict(photon[1].reshape(1,-1)))]
         
         elif hasattr(model1, 'predict') and (hasattr(model2, 'predict') == False):
             outside = [photon for photon in photons if (photon[0] >model1.predict(photon[1].reshape(1,-1))) 
-                                                        and
+                                                        or
                                                        (photon[0] < model2(photon[1]))]
         
         elif (hasattr(model1, 'predict') == False) and hasattr(model2, 'predict'):
             outside = [photon for photon in photons if (photon[0] > model1(photon[1])) 
-                                                        and
+                                                        or
                                                        (photon[0] < model2.predict(photon[1].reshape(1,-1)))]
         
         else:
             outside = [photon for photon in photons if (photon[0] > model1(photon[1])) 
-                                                        and
+                                                        or
                                                        (photon[0] < model2(photon[1]))]
         
         outside = np.asarray(outside)
