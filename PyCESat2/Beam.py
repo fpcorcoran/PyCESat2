@@ -10,13 +10,30 @@ from .WaveForm import waveForm
 from .utils import *
 
 class beamObject:
-    def __init__(self, h, d, lat, lon):
+    def __init__(self, h, d, lat, lon, ph_conf=None):
         super(beamObject, self).__init__()
         self.height = h
         self.distance = d
         self.lat = lat
         self.lon = lon
-
+        
+        if ph_conf is not None:
+            mask = {
+                'land' : np.where(ph_conf[:,0] == 4)[0],
+                'ocean' : np.where(ph_conf[:,1] == 4)[0],
+                'ice' : np.where(ph_conf[:,2] == 4)[0],
+                'land ice' : np.where(ph_conf == 4)[0],
+                'inland water' : np.where(ph_conf == 4)[0]
+                }
+            
+            for _class in mask.keys():
+                _mask = mask[_class]
+                
+                class_beam = beamObject(self.height[_mask], self.distance[_mask],
+                                        self.lat[_mask], self.lon[_mask])
+                
+                setattr(self, _class, class_beam)
+                
     def filter(self, win_x=3.0, win_h=3.0, threshold=15):
         """
 
