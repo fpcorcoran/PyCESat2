@@ -300,7 +300,7 @@ class surfaceBeamObject(beamObject, surfaces):
     
     def below(self, surface):
         model = self[surface]['model']
-        photons = list(zip(self.height, self.distance))
+        photons = list(zip(self.height, self.distance, self.lat, self.lon))
         
         if hasattr(model, "predict"):
             below = np.asarray([photon for photon in photons if photon[0] < model.predict(photon[1].reshape(1,-1))])
@@ -308,13 +308,13 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             below = np.asarray([photon for photon in photons if photon[0] < model(photon[1])])
         
-        below_beam = beamObject(below[:,0],below[:,1],[np.nan],[np.nan])
+        below_beam = beamObject(below[:,0],below[:,1],below[:,2],below[:,3])
         
         return surfaceBeamObject(below_beam, surface, model=model)
     
     def above(self, surface):
         model = getattr(self,surface)['model']
-        photons = list(zip(self.height, self.distance))
+        photons = list(zip(self.height, self.distance, self.lat, self.lon))
         
         if hasattr(model, "predict"):
             above = np.asarray([photon for photon in photons if photon[0] > model.predict(photon[1].reshape(1,-1))])
@@ -322,7 +322,7 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             above = np.asarray([photon for photon in photons if photon[0] > model(photon[1])])        
         
-        above_beam = beamObject(above[:,0],above[:,1],[np.nan],[np.nan])
+        above_beam = beamObject(above[:,0],above[:,1],above[:,2],above[:,3])
 
         return surfaceBeamObject(above_beam, surface, model=model)
     
@@ -332,7 +332,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         model1, model2 = order_surfaces(self.distance, model1, model2)
         
-        photons = list(zip(self.height, self.distance))
+        photons = list(zip(self.height, self.distance, self.lat, self.lon))
         
         if hasattr(model1, 'predict') and hasattr(model2, 'predict'):
             between = [photon for photon in photons if (photon[0] < model1.predict(photon[1].reshape(1,-1))) 
@@ -355,7 +355,7 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] > model2(photon[1]))]
         
         between = np.asarray(between)
-        between_beam = beamObject(between[:,0], between[:,1],[np.nan],[np.nan])
+        between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3])
         
         between_beam = surfaceBeamObject(between_beam, surface1, model1)
         between_beam.add_modeled_surface(surface2, model2, self.distance)
@@ -368,7 +368,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         model1, model2 = order_surfaces(self.distance, model1, model2)
         
-        photons = list(zip(self.height, self.distance))
+        photons = list(zip(self.height, self.distance, self.lat, self.lon))
         
         if hasattr(model1, 'predict') and hasattr(model2, 'predict'):
             outside = [photon for photon in photons if (photon[0] > model1.predict(photon[1].reshape(1,-1))) 
@@ -391,7 +391,7 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] < model2(photon[1]))]
         
         outside = np.asarray(outside)
-        outside_beam = beamObject(outside[:,0], outside[:,1],[np.nan],[np.nan])
+        outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3])
         
         outside_beam = surfaceBeamObject(outside_beam, surface1, model1)
         outside_beam.add_modeled_surface(surface2, model2, self.distance)
