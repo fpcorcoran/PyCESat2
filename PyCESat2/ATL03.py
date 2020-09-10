@@ -20,15 +20,16 @@ class ATL03:
                 d = np.asarray(self.h5.get(beam).get("heights").get("dist_ph_along"))
                 lat = np.asarray(self.h5.get(beam).get("heights").get("lat_ph"))
                 lon = np.asarray(self.h5.get(beam).get("heights").get("lon_ph"))
-
-
-                setattr(self, beam, beamObject(h,d,lat,lon))
+                
+                ph_conf = np.asarray(self.h5.get(beam).get('heights').get('signal_conf_ph'))
+                
+                setattr(self, beam, beamObject(h,d,lat,lon,ph_conf=ph_conf))
 
             else:
                 if ignore_warnings:
                     setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
                 else:
-                    warnings.warn("Beam {} has no photon data".format(beam))
+                    warnings.warn("Beam {0} has no photon data".format(beam))
                     setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
                     
     def __getitem__(self, key):
