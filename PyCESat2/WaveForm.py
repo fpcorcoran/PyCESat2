@@ -77,26 +77,3 @@ class waveForm:
             plt.savefig(fname)
 
         return self
-
-
-""" TESTING """
-
-def main():
-    a = 100.0
-    c = -0.01
-    d = 0.0
-
-    p0=(a, c, d)
-
-    h = np.linspace(2500,3000,200)
-    n = a*np.exp(c*h) + d
-
-    wf = waveForm(h, n).fit_curve(p0).plot()
-    wf2 = waveForm(h, n).plot()
-    print("Done!")
-
-
-
-
-if __name__ == "__main__":
-    main()
