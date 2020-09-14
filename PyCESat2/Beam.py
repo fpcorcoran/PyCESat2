@@ -10,12 +10,14 @@ from .WaveForm import waveForm
 from .utils import *
 
 class beamObject:
-    def __init__(self, h, d, lat, lon, ph_conf=None):
+    def __init__(self, h, d, lat, lon, ph_conf=None, beam=None):
         super(beamObject, self).__init__()
         self.height = h
         self.distance = d
         self.lat = lat
         self.lon = lon
+        self.ph_conf = ph_conf
+        self.beam = beam
         
         #if a photon confidence mask is passed to the initializer
         if ph_conf is not None:
@@ -238,6 +240,7 @@ class beamObject:
             window = np.asarray(window)
             waveform_kwargs['start_distance'] = x_start
             waveform_kwargs['end_distance'] = x_stop
+            waveform_kwargs['beam'] = self.beam
             
             waveforms.append(waveForm(window[:,0], window[:,1], **waveform_kwargs))
 
@@ -293,9 +296,12 @@ class surfaceBeamObject(beamObject, surfaces):
         super(surfaceBeamObject, self).__init__(beamObject.height, 
                                                 beamObject.distance,
                                                 beamObject.lat, 
-                                                beamObject.lon)
+                                                beamObject.lon,
+                                                ph_conf = beamObject.ph_conf,
+                                                beam = beamObject.beam)
         
         self.add_modeled_surface(name, model, beamObject.distance)
+        print("beam:",self.beam)
         
     
     def inliers(self, surface):
@@ -303,7 +309,8 @@ class surfaceBeamObject(beamObject, surfaces):
         mask = model.inlier_mask_
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
-                              self.lat[mask], self.lon[mask])
+                              self.lat[mask], self.lon[mask],
+                              ph_conf=self.ph_conf[mask], beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -312,7 +319,8 @@ class surfaceBeamObject(beamObject, surfaces):
         mask = np.invert(model.inlier_mask_)
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
-                              self.lat[mask], self.lon[mask])
+                              self.lat[mask], self.lon[mask],
+                              ph_conf=self.ph_conf[mask], beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -326,7 +334,8 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             below = np.asarray([photon for photon in photons if photon[0] < model(photon[1])])
         
-        below_beam = beamObject(below[:,0],below[:,1],below[:,2],below[:,3])
+        below_beam = beamObject(below[:,0],below[:,1],below[:,2],below[:,3],
+                                ph_conf=None, beam=self.beam)
         
         return surfaceBeamObject(below_beam, surface, model=model)
     
@@ -340,7 +349,8 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             above = np.asarray([photon for photon in photons if photon[0] > model(photon[1])])        
         
-        above_beam = beamObject(above[:,0],above[:,1],above[:,2],above[:,3])
+        above_beam = beamObject(above[:,0],above[:,1],above[:,2],above[:,3],
+                                ph_conf=None, beam=self.beam)
 
         return surfaceBeamObject(above_beam, surface, model=model)
     
@@ -373,7 +383,8 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] > model2(photon[1]))]
         
         between = np.asarray(between)
-        between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3])
+        between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3],
+                                  ph_conf=self.ph_conf, beam=self.beam)
         
         between_beam = surfaceBeamObject(between_beam, surface1, model1)
         between_beam.add_modeled_surface(surface2, model2, self.distance)
@@ -409,7 +420,8 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] < model2(photon[1]))]
         
         outside = np.asarray(outside)
-        outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3])
+        outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3],
+                                  ph_conf=self.ph_conf, beam=self.beam)
         
         outside_beam = surfaceBeamObject(outside_beam, surface1, model1)
         outside_beam.add_modeled_surface(surface2, model2, self.distance)

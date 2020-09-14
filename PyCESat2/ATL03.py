@@ -23,7 +23,7 @@ class ATL03:
                 
                 ph_conf = np.asarray(self.h5.get(beam).get('heights').get('signal_conf_ph'))
                 
-                setattr(self, beam, beamObject(h,d,lat,lon,ph_conf=ph_conf))
+                setattr(self, beam, beamObject(h,d,lat,lon,ph_conf=ph_conf,beam=beam))
 
             else:
                 if ignore_warnings:
