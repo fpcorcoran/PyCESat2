@@ -5,10 +5,13 @@ from sklearn.metrics import r2_score
 from scipy.optimize import curve_fit
 
 class waveForm:
-    def __init__(self, h, n):
+    def __init__(self, h, n, **kwargs):
         self.height = h
         self.count = n
         self.curve = False
+        
+        for key, value in kwargs.items():
+            setattr(self,key,value)
 
 
     def fit_curve(self, metric="RMSE"):

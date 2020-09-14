@@ -17,7 +17,9 @@ class beamObject:
         self.lat = lat
         self.lon = lon
         
+        #if a photon confidence mask is passed to the initializer
         if ph_conf is not None:
+            #seperate each landcover mask from the 4D array and take the highest confidence photons (i.e. 4)
             mask = {
                 'land' : np.where(ph_conf[:,0] == 4)[0],
                 'ocean' : np.where(ph_conf[:,1] == 4)[0],
@@ -26,6 +28,7 @@ class beamObject:
                 'inland water' : np.where(ph_conf == 4)[0]
                 }
             
+            #apply each mask to the beam and set the resulting beam objects as attributes
             for _class in mask.keys():
                 _mask = mask[_class]
                 
@@ -112,6 +115,7 @@ class beamObject:
         #path to geoid model file
         geoid = os.path.join(os.path.dirname(__file__),"data","EGM08","EGM2008_mosaic.tif")
 
+        #list of coordinates
         latlon = list(zip(self.lat,self.lon))
 
         if interpolate_geoid:
@@ -184,6 +188,9 @@ class beamObject:
 
         #combine height and track -> 2D array
         xy = pd.DataFrame.from_dict({"height":self.height,"distance":self.distance})
+        
+        #combine lat/lon -> 2D array
+        latlon = pd.DataFrame.from_dict({'lat':self.lat,'lon':self.lon,'distance':self.distance})
 
         #init window
         x_start = track_min
@@ -194,12 +201,20 @@ class beamObject:
         waveforms = []
 
         while x_stop < track_max:
+            #set up dict to hold kwargs for initializing waveform
+            waveform_kwargs = {}
+
             #define right boundary of X window
             if x_start + win_x < track_max:
                 x_stop = x_start + win_x
             else:
                 x_stop = track_max
-
+                
+            ll = latlon.loc[(latlon['distance'] >= x_start) & (latlon['distance'] <= x_stop)]
+            
+            waveform_kwargs['start_coords'] = (np.min(ll['lat'].values), np.min(ll['lon'].values))
+            waveform_kwargs['end_coords'] = (np.max(ll['lat'].values), np.max(ll['lon'].values))
+            
             window = []
 
             #proceed through depth for each X window
@@ -221,7 +236,10 @@ class beamObject:
                 y_start = y_stop
 
             window = np.asarray(window)
-            waveforms.append([x_start, waveForm(window[:,0], window[:,1])])
+            waveform_kwargs['start_distance'] = x_start
+            waveform_kwargs['end_distance'] = x_stop
+            
+            waveforms.append(waveForm(window[:,0], window[:,1], **waveform_kwargs))
 
             #reset height window to top of transect
             y_start = h_max
