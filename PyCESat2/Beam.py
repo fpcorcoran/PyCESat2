@@ -310,7 +310,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
                               self.lat[mask], self.lon[mask],
-                              ph_conf=self.ph_conf[mask], beam=self.beam)
+                              ph_conf=None, beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -320,7 +320,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
                               self.lat[mask], self.lon[mask],
-                              ph_conf=self.ph_conf[mask], beam=self.beam)
+                              ph_conf=None, beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -384,7 +384,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         between = np.asarray(between)
         between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3],
-                                  ph_conf=self.ph_conf, beam=self.beam)
+                                  ph_conf=None, beam=self.beam)
         
         between_beam = surfaceBeamObject(between_beam, surface1, model1)
         between_beam.add_modeled_surface(surface2, model2, self.distance)
@@ -421,7 +421,7 @@ class surfaceBeamObject(beamObject, surfaces):
         
         outside = np.asarray(outside)
         outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3],
-                                  ph_conf=self.ph_conf, beam=self.beam)
+                                  ph_conf=None, beam=self.beam)
         
         outside_beam = surfaceBeamObject(outside_beam, surface1, model1)
         outside_beam.add_modeled_surface(surface2, model2, self.distance)
