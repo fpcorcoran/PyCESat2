@@ -10,14 +10,18 @@ from .WaveForm import waveForm
 from .utils import *
 
 class beamObject:
-    def __init__(self, h, d, lat, lon, ph_conf=None):
+    def __init__(self, h, d, lat, lon, ph_conf=None, beam=None):
         super(beamObject, self).__init__()
         self.height = h
         self.distance = d
         self.lat = lat
         self.lon = lon
+        self.ph_conf = ph_conf
+        self.beam = beam
         
+        #if a photon confidence mask is passed to the initializer
         if ph_conf is not None:
+            #seperate each landcover mask from the 4D array and take the highest confidence photons (i.e. 4)
             mask = {
                 'land' : np.where(ph_conf[:,0] == 4)[0],
                 'ocean' : np.where(ph_conf[:,1] == 4)[0],
@@ -26,6 +30,7 @@ class beamObject:
                 'inland water' : np.where(ph_conf == 4)[0]
                 }
             
+            #apply each mask to the beam and set the resulting beam objects as attributes
             for _class in mask.keys():
                 _mask = mask[_class]
                 
@@ -112,6 +117,7 @@ class beamObject:
         #path to geoid model file
         geoid = os.path.join(os.path.dirname(__file__),"data","EGM08","EGM2008_mosaic.tif")
 
+        #list of coordinates
         latlon = list(zip(self.lat,self.lon))
 
         if interpolate_geoid:
@@ -184,6 +190,9 @@ class beamObject:
 
         #combine height and track -> 2D array
         xy = pd.DataFrame.from_dict({"height":self.height,"distance":self.distance})
+        
+        #combine lat/lon -> 2D array
+        latlon = pd.DataFrame.from_dict({'lat':self.lat,'lon':self.lon,'distance':self.distance})
 
         #init window
         x_start = track_min
@@ -194,12 +203,20 @@ class beamObject:
         waveforms = []
 
         while x_stop < track_max:
+            #set up dict to hold kwargs for initializing waveform
+            waveform_kwargs = {}
+
             #define right boundary of X window
             if x_start + win_x < track_max:
                 x_stop = x_start + win_x
             else:
                 x_stop = track_max
-
+                
+            ll = latlon.loc[(latlon['distance'] >= x_start) & (latlon['distance'] <= x_stop)]
+            
+            waveform_kwargs['start_coords'] = (np.min(ll['lat'].values), np.min(ll['lon'].values))
+            waveform_kwargs['end_coords'] = (np.max(ll['lat'].values), np.max(ll['lon'].values))
+            
             window = []
 
             #proceed through depth for each X window
@@ -221,7 +238,11 @@ class beamObject:
                 y_start = y_stop
 
             window = np.asarray(window)
-            waveforms.append([x_start, waveForm(window[:,0], window[:,1])])
+            waveform_kwargs['start_distance'] = x_start
+            waveform_kwargs['end_distance'] = x_stop
+            waveform_kwargs['beam'] = self.beam
+            
+            waveforms.append(waveForm(window[:,0], window[:,1], **waveform_kwargs))
 
             #reset height window to top of transect
             y_start = h_max
@@ -275,9 +296,12 @@ class surfaceBeamObject(beamObject, surfaces):
         super(surfaceBeamObject, self).__init__(beamObject.height, 
                                                 beamObject.distance,
                                                 beamObject.lat, 
-                                                beamObject.lon)
+                                                beamObject.lon,
+                                                ph_conf = beamObject.ph_conf,
+                                                beam = beamObject.beam)
         
         self.add_modeled_surface(name, model, beamObject.distance)
+        print("beam:",self.beam)
         
     
     def inliers(self, surface):
@@ -285,7 +309,8 @@ class surfaceBeamObject(beamObject, surfaces):
         mask = model.inlier_mask_
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
-                              self.lat[mask], self.lon[mask])
+                              self.lat[mask], self.lon[mask],
+                              ph_conf=self.ph_conf[mask], beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -294,7 +319,8 @@ class surfaceBeamObject(beamObject, surfaces):
         mask = np.invert(model.inlier_mask_)
         
         new_beam = beamObject(self.height[mask] ,self.distance[mask],
-                              self.lat[mask], self.lon[mask])
+                              self.lat[mask], self.lon[mask],
+                              ph_conf=self.ph_conf[mask], beam=self.beam)
         
         return surfaceBeamObject(new_beam, surface, model=model)
     
@@ -308,7 +334,8 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             below = np.asarray([photon for photon in photons if photon[0] < model(photon[1])])
         
-        below_beam = beamObject(below[:,0],below[:,1],below[:,2],below[:,3])
+        below_beam = beamObject(below[:,0],below[:,1],below[:,2],below[:,3],
+                                ph_conf=None, beam=self.beam)
         
         return surfaceBeamObject(below_beam, surface, model=model)
     
@@ -322,7 +349,8 @@ class surfaceBeamObject(beamObject, surfaces):
         else:
             above = np.asarray([photon for photon in photons if photon[0] > model(photon[1])])        
         
-        above_beam = beamObject(above[:,0],above[:,1],above[:,2],above[:,3])
+        above_beam = beamObject(above[:,0],above[:,1],above[:,2],above[:,3],
+                                ph_conf=None, beam=self.beam)
 
         return surfaceBeamObject(above_beam, surface, model=model)
     
@@ -355,7 +383,8 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] > model2(photon[1]))]
         
         between = np.asarray(between)
-        between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3])
+        between_beam = beamObject(between[:,0], between[:,1],between[:,2],between[:,3],
+                                  ph_conf=self.ph_conf, beam=self.beam)
         
         between_beam = surfaceBeamObject(between_beam, surface1, model1)
         between_beam.add_modeled_surface(surface2, model2, self.distance)
@@ -391,7 +420,8 @@ class surfaceBeamObject(beamObject, surfaces):
                                                        (photon[0] < model2(photon[1]))]
         
         outside = np.asarray(outside)
-        outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3])
+        outside_beam = beamObject(outside[:,0], outside[:,1], outside[:,2], outside[:,3],
+                                  ph_conf=self.ph_conf, beam=self.beam)
         
         outside_beam = surfaceBeamObject(outside_beam, surface1, model1)
         outside_beam.add_modeled_surface(surface2, model2, self.distance)
