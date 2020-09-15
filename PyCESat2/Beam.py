@@ -149,12 +149,11 @@ class beamObject:
                 distances.append(np.linalg.norm(diff))
 
 
-            #calculate a cubic spline using the distance and the undulations
-            #fit = CubicSpline(distances[::-1], undulations[::-1])
-            distances, undulations = np.asarray([distances]), np.asarray([undulations])
-            #return distances, undulations
-            fit = LinearRegression().fit(distances.T, undulations.T)
-
+            #generate 2D column arrays by nesting arrays, converting to numpy and transposing
+            distances, undulations = np.asarray([distances]).T, np.asarray([undulations]).T
+            
+            #calculate a linear regression using the transposed distances and undulations
+            fit = LinearRegression().fit(distances, undulations)
 
             geoid_heights=[]
             for i in range(len(lonlat)):
@@ -162,8 +161,7 @@ class beamObject:
                 diff = np.array(lon_max, lat_max) - np.asarray(lonlat[i])
                 dist = np.linalg.norm(diff)
 
-                #add the ellipsoidal height to the geoid undulation to correct 
-                #geoid_heights.append(self.height[i] - fit(dist))
+                #subtract the geoid undulation from the ellipsoid height to correct 
                 geoid_heights.append(self.height[i] - fit.predict(dist.reshape(1,-1)))
 
             return beamObject(np.asarray(geoid_heights), self.distance,
