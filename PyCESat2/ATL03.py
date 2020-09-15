@@ -5,7 +5,7 @@ from .Beam import beamObject
 
 
 class ATL03:
-    def __init__(self, filename, ignore_warnings=False):
+    def __init__(self, filename, ignore_warnings=False, keep_empty_beams=False):
         self.filename = filename
         self.h5 = h5py.File(filename, mode="r")
 
@@ -26,13 +26,21 @@ class ATL03:
                 setattr(self, beam, beamObject(h,d,lat,lon,ph_conf=ph_conf,beam=beam))
 
             else:
-                if ignore_warnings:
-                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
-                                                   ph_conf=None, beam=beam))
+                if keep_empty_beams:
+                    if ignore_warnings:
+                        setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
+                                                       ph_conf=None, beam=beam))
+                    else:
+                        warnings.warn("Beam {0} has no photon data".format(beam))
+                        setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
+                                                       ph_conf=None, beam=beam))
                 else:
+                    if beam in self.strong_beams:
+                        self.strong_beams.remove(beam)
+                    else:
+                        self.weak_beams.remove(beam)
                     warnings.warn("Beam {0} has no photon data".format(beam))
-                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
-                                                   ph_conf=None, beam=beam))
+                    
                     
     def __getitem__(self, key):
         return getattr(self, key)
