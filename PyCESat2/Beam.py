@@ -4,7 +4,7 @@ import os
 from rasterstats import point_query
 from shapely.geometry import Point
 from scipy.interpolate import CubicSpline
-from sklearn.linear_model import RANSACRegressor
+from sklearn.linear_model import RANSACRegressor, LinearRegression
 import matplotlib.pyplot as plt
 from .WaveForm import waveForm
 from .utils import *
@@ -117,8 +117,8 @@ class beamObject:
         #path to geoid model file
         geoid = os.path.join(os.path.dirname(__file__),"data","EGM08","EGM2008_mosaic.tif")
 
-        #list of coordinates
-        latlon = list(zip(self.lat,self.lon))
+        #list of coordinates - (lon/lat required for shapely.geometry.Point)
+        lonlat = list(zip(self.lon,self.lat))
 
         if interpolate_geoid:
             #get the minimum and maximum coordinate values
@@ -126,15 +126,16 @@ class beamObject:
             lon_min, lon_max = np.min(self.lon), np.max(self.lon)
 
             #sample 500 points between the min/max coords
-            latlon_samples = list(zip(
-                                    np.linspace(lat_min, lat_max, 500),
-                                    np.linspace(lon_min, lon_max, 500)
+            lonlat_samples = list(zip(
+                                    np.linspace(lon_min, lon_max, 500),
+                                    np.linspace(lat_min, lat_max, 500)
                                     ))
 
             
             undulations=[]
             distances=[]
-            for ll in latlon_samples:
+            diffs=[]
+            for ll in lonlat_samples:
                 #create a shapely point from the sample coordinate
                 pt = Point(ll)
 
@@ -142,23 +143,28 @@ class beamObject:
                 undulations.append(point_query(pt, geoid)[0])
 
                 #calculate the distance from the max coordinates
-                diff = np.array(lat_max, lon_max) - np.asarray(ll)
+                diff = np.array(lon_max, lat_max) - np.asarray(ll)
+                diffs.append(diff)
                 #normalize the difference and append
                 distances.append(np.linalg.norm(diff))
 
 
             #calculate a cubic spline using the distance and the undulations
-            fit = CubicSpline(distances[::-1], undulations[::-1])
+            #fit = CubicSpline(distances[::-1], undulations[::-1])
+            distances, undulations = np.asarray([distances]), np.asarray([undulations])
+            #return distances, undulations
+            fit = LinearRegression().fit(distances.T, undulations.T)
 
 
             geoid_heights=[]
-            for i in range(len(latlon)):
+            for i in range(len(lonlat)):
                 #find the distance of real coords to max coords
-                diff = np.array(lat_max, lon_max) - np.asarray(latlon[i])
+                diff = np.array(lon_max, lat_max) - np.asarray(lonlat[i])
                 dist = np.linalg.norm(diff)
 
                 #add the ellipsoidal height to the geoid undulation to correct 
-                geoid_heights.append(self.height[i] + fit(dist))
+                #geoid_heights.append(self.height[i] - fit(dist))
+                geoid_heights.append(self.height[i] - fit.predict(dist.reshape(1,-1)))
 
             return beamObject(np.asarray(geoid_heights), self.distance,
                               self.lat, self.lon, ph_conf=self.ph_conf, beam=self.beam)
@@ -166,8 +172,8 @@ class beamObject:
         else:
             pts=[]
 
-            for lat,lon in latlon:
-                pts.append(Point(lat,lon))
+            for lon,lat in lonlat:
+                pts.append(Point(lon,lat))
 
             return beamObject(self.height + np.asarray(point_query(pts,geoid)),
                               self.distance, self.lat, self.lon, ph_conf=self.ph_conf, beam=self.beam)
