@@ -27,10 +27,12 @@ class ATL03:
 
             else:
                 if ignore_warnings:
-                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
+                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
+                                                   ph_conf=None, beam=beam))
                 else:
                     warnings.warn("Beam {0} has no photon data".format(beam))
-                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan]))
+                    setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
+                                                   ph_conf=None, beam=beam))
                     
     def __getitem__(self, key):
         return getattr(self, key)

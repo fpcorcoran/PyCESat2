@@ -121,38 +121,47 @@ class beamObject:
         latlon = list(zip(self.lat,self.lon))
 
         if interpolate_geoid:
+            #get the minimum and maximum coordinate values
             lat_min, lat_max = np.min(self.lat), np.max(self.lat)
             lon_min, lon_max = np.min(self.lon), np.max(self.lon)
 
-
+            #sample 500 points between the min/max coords
             latlon_samples = list(zip(
                                     np.linspace(lat_min, lat_max, 500),
                                     np.linspace(lon_min, lon_max, 500)
                                     ))
 
+            
             undulations=[]
             distances=[]
             for ll in latlon_samples:
+                #create a shapely point from the sample coordinate
                 pt = Point(ll)
 
+                #query the EGM08 model for that coordinate
                 undulations.append(point_query(pt, geoid)[0])
 
+                #calculate the distance from the max coordinates
                 diff = np.array(lat_max, lon_max) - np.asarray(ll)
+                #normalize the difference and append
                 distances.append(np.linalg.norm(diff))
 
 
+            #calculate a cubic spline using the distance and the undulations
             fit = CubicSpline(distances[::-1], undulations[::-1])
 
 
             geoid_heights=[]
             for i in range(len(latlon)):
+                #find the distance of real coords to max coords
                 diff = np.array(lat_max, lon_max) - np.asarray(latlon[i])
                 dist = np.linalg.norm(diff)
 
+                #add the ellipsoidal height to the geoid undulation to correct 
                 geoid_heights.append(self.height[i] + fit(dist))
 
             return beamObject(np.asarray(geoid_heights), self.distance,
-                              self.lat, self.lon)
+                              self.lat, self.lon, ph_conf=self.ph_conf, beam=self.beam)
 
         else:
             pts=[]
@@ -161,7 +170,7 @@ class beamObject:
                 pts.append(Point(lat,lon))
 
             return beamObject(self.height + np.asarray(point_query(pts,geoid)),
-                              self.distance, self.lat, self.lon)
+                              self.distance, self.lat, self.lon, ph_conf=self.ph_conf, beam=self.beam)
 
     def RANSAC(self, name, residual_threshold=None):
         n = len(self.distance)
@@ -301,7 +310,6 @@ class surfaceBeamObject(beamObject, surfaces):
                                                 beam = beamObject.beam)
         
         self.add_modeled_surface(name, model, beamObject.distance)
-        print("beam:",self.beam)
         
     
     def inliers(self, surface):
