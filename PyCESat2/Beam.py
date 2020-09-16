@@ -164,7 +164,7 @@ class beamObject:
                 #subtract the geoid undulation from the ellipsoid height to correct 
                 geoid_heights.append(self.height[i] - fit.predict(dist.reshape(1,-1)))
 
-            return beamObject(np.asarray(geoid_heights), self.distance,
+            return beamObject(np.asarray(geoid_heights).reshape(len(geoid_heights)), self.distance,
                               self.lat, self.lon, ph_conf=self.ph_conf, beam=self.beam)
 
         else:
