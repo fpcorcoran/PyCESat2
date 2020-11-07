@@ -9,6 +9,7 @@ class waveForm:
         self.height = h
         self.count = n
         self.curve = False
+        self.dist = False
         
         for key, value in kwargs.items():
             setattr(self,key,value)
@@ -65,18 +66,68 @@ class waveForm:
         
         return stats
     
+    def fit_dist(self, dist='norm'):
+        
+        #store distribution name
+        name = dist
+        
+        #Get table of distributions
+        dist = distributions[dist]
+        
+        #Fit distribution to get parameters
+        params = dist.fit(self.count)
+        
+        #Split up parameters
+        arg = params[:-2]
+        loc = params[-2]
+        scale = params[-1]
+        
+        # Get histogram of original data
+        bins= len(self.height) * 10
+        y, x = np.histogram(self.count, bins=bins, density=True)
+        x = (x + np.roll(x, -1))[:-1] / 2.0
+        
+        #get start/end of middle 98% of distribution - regardless of args
+        start = dist.ppf(0.01, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.01, loc=loc, scale=scale)
+        end = dist.ppf(0.99, *arg, loc=loc, scale=scale) if arg else dist.ppf(0.99, loc=loc, scale=scale)
+
+        #define domain of distribution
+        dist_x = np.linspace(start, end, bins)
+        
+        #compute f(x) where f is the probability density function
+        pdf = dist.pdf(dist_x, loc=loc, scale=scale, *arg)
+        
+        #scale results to match waveform
+        dist_y = pdf*(np.max(self.count)/np.max(pdf))
+        
+        self.dist = True
+        setattr(self, "dist_h", -dist_x)
+        setattr(self, 'dist_fit', dist_y)
+        setattr(self, 'dist_params',params)
+        setattr(self, 'dist_name', name)
+        
+
+        return self
+        
 
     def plot(self, fname=None):
         plt.figure(figsize=(6,6))
-        plt.barh(self.height, self.count)
+        plt.barh(self.height, self.count,height=0.1,label="waveform")
 
         if self.curve:
-            plt.plot(self.count_fit, self.height, c="r")
+            plt.plot(self.count_fit, self.height, c="r", label="fitted curve")
+            
+        if self.dist:
+            plt.plot(self.dist_fit, self.dist_h, c='g', label="distribtion")
+            
+        plt.legend()
+        plt.ylim(np.min(self.height), np.max(self.height))
 
         if fname == None:
             plt.show()
         
         else:
             plt.savefig(fname)
+            
 
         return self
