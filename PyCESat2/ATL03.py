@@ -12,6 +12,14 @@ class ATL03:
 
         #Store metadata for easy access - unpacking needed here
         self.meta = self.h5.get("METADATA")
+        
+        self.attributes = {}
+        
+        for name, value in self.h5.attrs.items():
+            if type(value) == np.bytes_:
+                self.attributes[name] = value.decode('UTF-8')
+            else:
+                self.attributes[name] = value
 
         #get list of beam names
         self.strong_beams = [b for b in list(self.h5.keys()) if b in ["gt1r","gt2r","gt3r"]]
@@ -24,10 +32,10 @@ class ATL03:
                 d = np.asarray(self.h5.get(beam).get("heights").get("dist_ph_along"))
                 lat = np.asarray(self.h5.get(beam).get("heights").get("lat_ph"))
                 lon = np.asarray(self.h5.get(beam).get("heights").get("lon_ph"))
-                
+
                 #photon confidence mask used for basic landcover classification
                 ph_conf = np.asarray(self.h5.get(beam).get('heights').get('signal_conf_ph'))
-                
+
                 setattr(self, beam, beamObject(h,d,lat,lon,ph_conf=ph_conf,beam=beam))
 
             else:
@@ -41,7 +49,7 @@ class ATL03:
                         warnings.warn("Beam {0} has no photon data".format(beam))
                         setattr(self, beam, beamObject([np.nan],[np.nan],[np.nan],[np.nan],
                                                        ph_conf=None, beam=beam))
-                        
+
                 #by default, empty beams are removed from ATL03 object
                 else:
                     #raise warning by default
@@ -57,7 +65,7 @@ class ATL03:
                         else:
                             self.weak_beams.remove(beam)
                             warnings.warn("Beam {0} has no photon data".format(beam))
-                    
-                    
+
+
     def __getitem__(self, key):
         return getattr(self, key)
