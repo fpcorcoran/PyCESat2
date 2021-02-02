@@ -56,3 +56,6 @@ have permission to contribute.
 	2. Create a new branch of form #-Name-Of-Issue.
 		- Number should be the next number after the highest numbered branch (active or inactive)
 	3. Issue pull request with changes to new branch and assign Forrest Corcoran as reviewer
+
+## Credit
+This work was completed under NASA GRANT #######
