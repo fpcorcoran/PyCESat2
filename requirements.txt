@@ -96,7 +96,7 @@ python-dateutil==2.8.1
 python-jsonrpc-server @ file:///home/conda/feedstock_root/build_artifacts/python-jsonrpc-server_1588783985962/work
 python-language-server @ file:///Users/runner/miniforge3/conda-bld/python-language-server_1593716099830/work
 pytz==2020.1
-PyYAML==5.3.1
+PyYAML==5.4
 pyzmq==19.0.1
 QDarkStyle==2.8.1
 QtAwesome @ file:///home/conda/feedstock_root/build_artifacts/qtawesome_1588715536397/work
