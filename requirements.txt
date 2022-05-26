@@ -133,7 +133,7 @@ tornado==6.0.4
 tqdm @ file:///home/conda/feedstock_root/build_artifacts/tqdm_1594937875116/work
 traitlets==4.3.3
 typed-ast==1.4.1
-ujson==1.35
+ujson==5.2.0
 urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1595434816409/work
 watchdog @ file:///Users/runner/miniforge3/conda-bld/watchdog_1595646219227/work
 wcwidth @ file:///home/conda/feedstock_root/build_artifacts/wcwidth_1595859607677/work
