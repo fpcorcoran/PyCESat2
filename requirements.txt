@@ -61,7 +61,7 @@ matplotlib @ file:///Users/runner/miniforge3/conda-bld/matplotlib-base_159535307
 mccabe==0.6.1
 mistune==0.8.4
 munch==2.5.0
-nbconvert==5.6.1
+nbconvert==6.3.0
 nbformat @ file:///home/conda/feedstock_root/build_artifacts/nbformat_1594060262917/work
 notebook @ file:///Users/runner/miniforge3/conda-bld/notebook_1594078853920/work
 numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1595522909688/work
