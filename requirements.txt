@@ -13,7 +13,7 @@ backports.functools-lru-cache==1.6.1
 beautifulsoup4 @ file:///Users/runner/miniforge3/conda-bld/beautifulsoup4_1589760921411/work
 bleach @ file:///home/conda/feedstock_root/build_artifacts/bleach_1588608214987/work
 brotlipy==0.7.0
-certifi==2020.6.20
+certifi==2022.12.7
 cffi @ file:///Users/runner/miniforge3/conda-bld/cffi_1595805544857/work
 chardet==3.0.4
 click==7.1.2
